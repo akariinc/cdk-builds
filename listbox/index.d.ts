@@ -6,11 +6,13 @@ import { Highlightable } from '@angular/cdk/a11y';
 import * as i0 from '@angular/core';
 import { ListKeyManagerOption } from '@angular/cdk/a11y';
 import { NgZone } from '@angular/core';
+import { OnChanges } from '@angular/core';
 import { OnDestroy } from '@angular/core';
 import { OnInit } from '@angular/core';
 import { QueryList } from '@angular/core';
 import { Renderer2 } from '@angular/core';
 import { SelectionModel } from '@angular/cdk/collections';
+import { SimpleChanges } from '@angular/core';
 import { Subject } from 'rxjs';
 
 export declare class CdkListbox<T = unknown> implements AfterContentInit, OnDestroy, ControlValueAccessor {
@@ -275,7 +277,7 @@ export declare class CdkListboxModule {
 }
 
 /** A selectable option in a listbox. */
-export declare class CdkOption<T = unknown> implements OnInit, ListKeyManagerOption, Highlightable, OnDestroy {
+export declare class CdkOption<T = unknown> implements OnInit, OnChanges, ListKeyManagerOption, Highlightable, OnDestroy {
     /** The id of the option's host element. */
     get id(): string;
     set id(value: string);
@@ -307,6 +309,7 @@ export declare class CdkOption<T = unknown> implements OnInit, ListKeyManagerOpt
     /** Emits when the option is clicked. */
     readonly _clicked: Subject<MouseEvent>;
     ngOnInit(): void;
+    ngOnChanges(changes: SimpleChanges): void;
     ngOnDestroy(): void;
     /** Whether this option is selected. */
     isSelected(): boolean;
