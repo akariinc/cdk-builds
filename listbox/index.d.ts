@@ -285,6 +285,8 @@ export declare class CdkOption<T = unknown> implements OnInit, OnChanges, ListKe
     private _generatedId;
     /** The value of this option. */
     value: T;
+    /** Display name of the option */
+    display: string | null;
     /**
      * The text used to locate this item during listbox typeahead. If not specified,
      * the `textContent` of the item will be used.
@@ -340,7 +342,7 @@ export declare class CdkOption<T = unknown> implements OnInit, OnChanges, ListKe
     /** Get the tabindex for this option. */
     protected _getTabIndex(): number | null | undefined;
     static ɵfac: i0.ɵɵFactoryDeclaration<CdkOption<any>, never>;
-    static ɵdir: i0.ɵɵDirectiveDeclaration<CdkOption<any>, "[cdkOption]", ["cdkOption"], { "id": { "alias": "id"; "required": false; }; "value": { "alias": "cdkOption"; "required": false; }; "typeaheadLabel": { "alias": "cdkOptionTypeaheadLabel"; "required": false; }; "disabled": { "alias": "cdkOptionDisabled"; "required": false; }; "enabledTabIndex": { "alias": "tabindex"; "required": false; }; }, {}, never, never, true, never>;
+    static ɵdir: i0.ɵɵDirectiveDeclaration<CdkOption<any>, "[cdkOption]", ["cdkOption"], { "id": { "alias": "id"; "required": false; }; "value": { "alias": "cdkOption"; "required": false; }; "display": { "alias": "display"; "required": false; }; "typeaheadLabel": { "alias": "cdkOptionTypeaheadLabel"; "required": false; }; "disabled": { "alias": "cdkOptionDisabled"; "required": false; }; "enabledTabIndex": { "alias": "tabindex"; "required": false; }; }, {}, never, never, true, never>;
     static ngAcceptInputType_disabled: unknown;
 }
 
