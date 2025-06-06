@@ -5,11 +5,11 @@ import { SelectionModel } from '@angular/cdk/collections';
 import { A, hasModifierKey, SPACE, ENTER, HOME, END, UP_ARROW, DOWN_ARROW, LEFT_ARROW, RIGHT_ARROW } from '@angular/cdk/keycodes';
 import { Platform } from '@angular/cdk/platform';
 import * as i0 from '@angular/core';
-import { SecurityContext, Injectable, signal, inject, ElementRef, Renderer2, booleanAttribute, Directive, Input, NgZone, ChangeDetectorRef, forwardRef, Output, ContentChildren, NgModule } from '@angular/core';
+import { SecurityContext, Injectable, inject, signal, ElementRef, booleanAttribute, Directive, Input, NgZone, ChangeDetectorRef, forwardRef, Output, ContentChildren, NgModule } from '@angular/core';
 import { NG_VALUE_ACCESSOR } from '@angular/forms';
-import { DomSanitizer } from '@angular/platform-browser';
 import { Subject, defer, merge, fromEvent } from 'rxjs';
 import { startWith, switchMap, map, takeUntil, filter } from 'rxjs/operators';
+import { DomSanitizer } from '@angular/platform-browser';
 
 /**
  * Custom sanitizer that allows &lt;svg&gt; but removes dangerous content
@@ -96,14 +96,14 @@ class CdkOption {
         this._generatedId = `cdk-option-${nextId++}`;
         /** Display name of the option */
         this.display = null;
+        /** Custom sanitizer */
+        this._customSanitizer = inject(CdkListboxCustomSanitizer);
         this._disabled = signal(false);
         this._enabledTabIndex = signal(undefined);
         /** The option's host element */
         this.element = inject(ElementRef).nativeElement;
         /** The parent listbox this option belongs to. */
         this.listbox = inject(CdkListbox);
-        /** The renderer used to modify the listbox element. */
-        this.renderer = inject(Renderer2);
         /** Emits when the option is destroyed. */
         this.destroyed = new Subject();
         /** Emits when the option is clicked. */
@@ -133,15 +133,20 @@ class CdkOption {
         this._enabledTabIndex.set(value);
     }
     ngOnInit() {
-        this.renderer.setProperty(this.element, 'innerHTML', this.display || this.value);
+        const htmlContent = this._customSanitizer.sanitize(SecurityContext.HTML, (this.display || this.value || ''));
+        this.element.innerHTML = htmlContent || '';
     }
     ngOnChanges(changes) {
+        // Here we need svg to be renderered but angular's new sanitizer will reject it.
+        // to avoid, use custom validation sanitizer and do not use renderer.
         if (('value' in changes && !this.display) || 'display' in changes) {
             if ('display' in changes) {
-                this.renderer.setProperty(this.element, 'innerHTML', changes['display'].currentValue);
+                const displayValue = this._customSanitizer.sanitize(SecurityContext.HTML, changes['display'].currentValue);
+                this.element.innerHTML = displayValue || '';
             }
             if ('value' in changes) {
-                this.renderer.setProperty(this.element, 'innerHTML', changes['value'].currentValue);
+                const value = this._customSanitizer.sanitize(SecurityContext.HTML, changes['value'].currentValue);
+                this.element.innerHTML = value || '';
             }
         }
     }
@@ -211,7 +216,7 @@ class CdkOption {
         return this.isActive() ? this.enabledTabIndex : -1;
     }
     static { this.ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "18.2.0-next.2", ngImport: i0, type: CdkOption, deps: [], target: i0.ɵɵFactoryTarget.Directive }); }
-    static { this.ɵdir = i0.ɵɵngDeclareDirective({ minVersion: "16.1.0", version: "18.2.0-next.2", type: CdkOption, isStandalone: true, selector: "[cdkOption]", inputs: { id: "id", value: ["cdkOption", "value"], display: "display", typeaheadLabel: ["cdkOptionTypeaheadLabel", "typeaheadLabel"], disabled: ["cdkOptionDisabled", "disabled", booleanAttribute], enabledTabIndex: ["tabindex", "enabledTabIndex"] }, host: { attributes: { "role": "option" }, listeners: { "click": "_clicked.next($event)", "focus": "_handleFocus()" }, properties: { "id": "id", "attr.aria-selected": "isSelected()", "attr.tabindex": "_getTabIndex()", "attr.aria-disabled": "disabled", "class.cdk-option-active": "isActive()" }, classAttribute: "cdk-option" }, providers: [{ provide: DomSanitizer, useClass: CdkListboxCustomSanitizer }], exportAs: ["cdkOption"], usesOnChanges: true, ngImport: i0 }); }
+    static { this.ɵdir = i0.ɵɵngDeclareDirective({ minVersion: "16.1.0", version: "18.2.0-next.2", type: CdkOption, isStandalone: true, selector: "[cdkOption]", inputs: { id: "id", value: ["cdkOption", "value"], display: "display", typeaheadLabel: ["cdkOptionTypeaheadLabel", "typeaheadLabel"], disabled: ["cdkOptionDisabled", "disabled", booleanAttribute], enabledTabIndex: ["tabindex", "enabledTabIndex"] }, host: { attributes: { "role": "option" }, listeners: { "click": "_clicked.next($event)", "focus": "_handleFocus()" }, properties: { "id": "id", "attr.aria-selected": "isSelected()", "attr.tabindex": "_getTabIndex()", "attr.aria-disabled": "disabled", "class.cdk-option-active": "isActive()" }, classAttribute: "cdk-option" }, exportAs: ["cdkOption"], usesOnChanges: true, ngImport: i0 }); }
 }
 i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "18.2.0-next.2", ngImport: i0, type: CdkOption, decorators: [{
             type: Directive,
@@ -230,7 +235,6 @@ i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "18.2.0-next.2", 
                         '(click)': '_clicked.next($event)',
                         '(focus)': '_handleFocus()',
                     },
-                    providers: [{ provide: DomSanitizer, useClass: CdkListboxCustomSanitizer }],
                 }]
         }], propDecorators: { id: [{
                 type: Input

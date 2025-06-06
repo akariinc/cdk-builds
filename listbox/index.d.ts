@@ -10,7 +10,6 @@ import { OnChanges } from '@angular/core';
 import { OnDestroy } from '@angular/core';
 import { OnInit } from '@angular/core';
 import { QueryList } from '@angular/core';
-import { Renderer2 } from '@angular/core';
 import { SelectionModel } from '@angular/cdk/collections';
 import { SimpleChanges } from '@angular/core';
 import { Subject } from 'rxjs';
@@ -287,6 +286,8 @@ export declare class CdkOption<T = unknown> implements OnInit, OnChanges, ListKe
     value: T;
     /** Display name of the option */
     display: string | null;
+    /** Custom sanitizer */
+    private _customSanitizer;
     /**
      * The text used to locate this item during listbox typeahead. If not specified,
      * the `textContent` of the item will be used.
@@ -304,8 +305,6 @@ export declare class CdkOption<T = unknown> implements OnInit, OnChanges, ListKe
     readonly element: HTMLElement;
     /** The parent listbox this option belongs to. */
     protected readonly listbox: CdkListbox<T>;
-    /** The renderer used to modify the listbox element. */
-    protected readonly renderer: Renderer2;
     /** Emits when the option is destroyed. */
     protected destroyed: Subject<void>;
     /** Emits when the option is clicked. */
