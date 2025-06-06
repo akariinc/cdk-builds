@@ -5,11 +5,61 @@ import { SelectionModel } from '@angular/cdk/collections';
 import { A, hasModifierKey, SPACE, ENTER, HOME, END, UP_ARROW, DOWN_ARROW, LEFT_ARROW, RIGHT_ARROW } from '@angular/cdk/keycodes';
 import { Platform } from '@angular/cdk/platform';
 import * as i0 from '@angular/core';
-import { signal, inject, ElementRef, Renderer2, booleanAttribute, Directive, Input, NgZone, ChangeDetectorRef, forwardRef, Output, ContentChildren, SecurityContext, Injectable, NgModule } from '@angular/core';
+import { SecurityContext, Injectable, signal, inject, ElementRef, Renderer2, booleanAttribute, Directive, Input, NgZone, ChangeDetectorRef, forwardRef, Output, ContentChildren, NgModule } from '@angular/core';
 import { NG_VALUE_ACCESSOR } from '@angular/forms';
+import { DomSanitizer } from '@angular/platform-browser';
 import { Subject, defer, merge, fromEvent } from 'rxjs';
 import { startWith, switchMap, map, takeUntil, filter } from 'rxjs/operators';
-import { DomSanitizer } from '@angular/platform-browser';
+
+/**
+ * Custom sanitizer that allows &lt;svg&gt; but removes dangerous content
+ * @docs-private
+ */
+class CdkListboxCustomSanitizer extends DomSanitizer {
+    constructor() {
+        super();
+    }
+    /** Main sanitization function */
+    sanitize(context, value) {
+        if (context === SecurityContext.HTML && typeof value === 'string') {
+            return this._sanitizeHtml(value);
+        }
+        return value;
+    }
+    /** Function to sanitize HTML while keeping &lt;svg&gt; */
+    _sanitizeHtml(html) {
+        /** Remove &lt;script&gt;, &lt;iframe&gt;, &lt;object&gt;, &lt;embed&gt;, &lt;form&gt;, &lt;style&gt;, &lt;meta&gt;, &lt;link&gt;, &lt;base&gt; */
+        html = html.replace(/<(script|iframe|object|embed|form|meta|style|link|base)[^>]*>[\s\S]*?<\/\1>/gi, '');
+        // Remove dangerous attributes (onX events, javascript: links)
+        html = html.replace(/\son\w+="[^"]*"/gi, ''); // Remove event handlers (e.g., onclick)
+        html = html.replace(/\son\w+='[^']*'/gi, ''); // Remove event handlers (single quotes)
+        html = html.replace(/\shref=['"](javascript:)[^'"]*['"]/gi, 'href="#"'); // Prevent javascript: links
+        html = html.replace(/\ssrc=['"](javascript:)[^'"]*['"]/gi, ''); // Prevent javascript: in src
+        return html;
+    }
+    /** Bypass security trust for safe HTML */
+    bypassSecurityTrustHtml(value) {
+        return value;
+    }
+    bypassSecurityTrustStyle(value) {
+        return value;
+    }
+    bypassSecurityTrustScript(value) {
+        return value;
+    }
+    bypassSecurityTrustUrl(value) {
+        return value;
+    }
+    bypassSecurityTrustResourceUrl(value) {
+        return value;
+    }
+    static { this.ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "18.2.0-next.2", ngImport: i0, type: CdkListboxCustomSanitizer, deps: [], target: i0.ɵɵFactoryTarget.Injectable }); }
+    static { this.ɵprov = i0.ɵɵngDeclareInjectable({ minVersion: "12.0.0", version: "18.2.0-next.2", ngImport: i0, type: CdkListboxCustomSanitizer, providedIn: 'root' }); }
+}
+i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "18.2.0-next.2", ngImport: i0, type: CdkListboxCustomSanitizer, decorators: [{
+            type: Injectable,
+            args: [{ providedIn: 'root' }]
+        }], ctorParameters: () => [] });
 
 /** The next id to use for creating unique DOM IDs. */
 let nextId = 0;
@@ -161,7 +211,7 @@ class CdkOption {
         return this.isActive() ? this.enabledTabIndex : -1;
     }
     static { this.ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "18.2.0-next.2", ngImport: i0, type: CdkOption, deps: [], target: i0.ɵɵFactoryTarget.Directive }); }
-    static { this.ɵdir = i0.ɵɵngDeclareDirective({ minVersion: "16.1.0", version: "18.2.0-next.2", type: CdkOption, isStandalone: true, selector: "[cdkOption]", inputs: { id: "id", value: ["cdkOption", "value"], display: "display", typeaheadLabel: ["cdkOptionTypeaheadLabel", "typeaheadLabel"], disabled: ["cdkOptionDisabled", "disabled", booleanAttribute], enabledTabIndex: ["tabindex", "enabledTabIndex"] }, host: { attributes: { "role": "option" }, listeners: { "click": "_clicked.next($event)", "focus": "_handleFocus()" }, properties: { "id": "id", "attr.aria-selected": "isSelected()", "attr.tabindex": "_getTabIndex()", "attr.aria-disabled": "disabled", "class.cdk-option-active": "isActive()" }, classAttribute: "cdk-option" }, exportAs: ["cdkOption"], usesOnChanges: true, ngImport: i0 }); }
+    static { this.ɵdir = i0.ɵɵngDeclareDirective({ minVersion: "16.1.0", version: "18.2.0-next.2", type: CdkOption, isStandalone: true, selector: "[cdkOption]", inputs: { id: "id", value: ["cdkOption", "value"], display: "display", typeaheadLabel: ["cdkOptionTypeaheadLabel", "typeaheadLabel"], disabled: ["cdkOptionDisabled", "disabled", booleanAttribute], enabledTabIndex: ["tabindex", "enabledTabIndex"] }, host: { attributes: { "role": "option" }, listeners: { "click": "_clicked.next($event)", "focus": "_handleFocus()" }, properties: { "id": "id", "attr.aria-selected": "isSelected()", "attr.tabindex": "_getTabIndex()", "attr.aria-disabled": "disabled", "class.cdk-option-active": "isActive()" }, classAttribute: "cdk-option" }, providers: [{ provide: DomSanitizer, useClass: CdkListboxCustomSanitizer }], exportAs: ["cdkOption"], usesOnChanges: true, ngImport: i0 }); }
 }
 i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "18.2.0-next.2", ngImport: i0, type: CdkOption, decorators: [{
             type: Directive,
@@ -180,6 +230,7 @@ i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "18.2.0-next.2", 
                         '(click)': '_clicked.next($event)',
                         '(focus)': '_handleFocus()',
                     },
+                    providers: [{ provide: DomSanitizer, useClass: CdkListboxCustomSanitizer }],
                 }]
         }], propDecorators: { id: [{
                 type: Input
@@ -921,68 +972,17 @@ i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "18.2.0-next.2", 
                 args: [CdkOption, { descendants: true }]
             }] } });
 
-/**
- * Custom sanitizer that allows &lt;svg&gt; but removes dangerous content
- * @docs-private
- */
-class CdkListboxCustomSanitizer extends DomSanitizer {
-    constructor() {
-        super();
-    }
-    /** Main sanitization function */
-    sanitize(context, value) {
-        if (context === SecurityContext.HTML && typeof value === 'string') {
-            return this._sanitizeHtml(value);
-        }
-        return value;
-    }
-    /** Function to sanitize HTML while keeping &lt;svg&gt; */
-    _sanitizeHtml(html) {
-        /** Remove &lt;script&gt;, &lt;iframe&gt;, &lt;object&gt;, &lt;embed&gt;, &lt;form&gt;, &lt;style&gt;, &lt;meta&gt;, &lt;link&gt;, &lt;base&gt; */
-        html = html.replace(/<(script|iframe|object|embed|form|meta|style|link|base)[^>]*>[\s\S]*?<\/\1>/gi, '');
-        // Remove dangerous attributes (onX events, javascript: links)
-        html = html.replace(/\son\w+="[^"]*"/gi, ''); // Remove event handlers (e.g., onclick)
-        html = html.replace(/\son\w+='[^']*'/gi, ''); // Remove event handlers (single quotes)
-        html = html.replace(/\shref=['"](javascript:)[^'"]*['"]/gi, 'href="#"'); // Prevent javascript: links
-        html = html.replace(/\ssrc=['"](javascript:)[^'"]*['"]/gi, ''); // Prevent javascript: in src
-        return html;
-    }
-    /** Bypass security trust for safe HTML */
-    bypassSecurityTrustHtml(value) {
-        return value;
-    }
-    bypassSecurityTrustStyle(value) {
-        return value;
-    }
-    bypassSecurityTrustScript(value) {
-        return value;
-    }
-    bypassSecurityTrustUrl(value) {
-        return value;
-    }
-    bypassSecurityTrustResourceUrl(value) {
-        return value;
-    }
-    static { this.ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "18.2.0-next.2", ngImport: i0, type: CdkListboxCustomSanitizer, deps: [], target: i0.ɵɵFactoryTarget.Injectable }); }
-    static { this.ɵprov = i0.ɵɵngDeclareInjectable({ minVersion: "12.0.0", version: "18.2.0-next.2", ngImport: i0, type: CdkListboxCustomSanitizer, providedIn: 'root' }); }
-}
-i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "18.2.0-next.2", ngImport: i0, type: CdkListboxCustomSanitizer, decorators: [{
-            type: Injectable,
-            args: [{ providedIn: 'root' }]
-        }], ctorParameters: () => [] });
-
 const EXPORTED_DECLARATIONS = [CdkListbox, CdkOption];
 class CdkListboxModule {
     static { this.ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "18.2.0-next.2", ngImport: i0, type: CdkListboxModule, deps: [], target: i0.ɵɵFactoryTarget.NgModule }); }
     static { this.ɵmod = i0.ɵɵngDeclareNgModule({ minVersion: "14.0.0", version: "18.2.0-next.2", ngImport: i0, type: CdkListboxModule, imports: [CdkListbox, CdkOption], exports: [CdkListbox, CdkOption] }); }
-    static { this.ɵinj = i0.ɵɵngDeclareInjector({ minVersion: "12.0.0", version: "18.2.0-next.2", ngImport: i0, type: CdkListboxModule, providers: [{ provide: DomSanitizer, useClass: CdkListboxCustomSanitizer }] }); }
+    static { this.ɵinj = i0.ɵɵngDeclareInjector({ minVersion: "12.0.0", version: "18.2.0-next.2", ngImport: i0, type: CdkListboxModule }); }
 }
 i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "18.2.0-next.2", ngImport: i0, type: CdkListboxModule, decorators: [{
             type: NgModule,
             args: [{
                     imports: [...EXPORTED_DECLARATIONS],
                     exports: [...EXPORTED_DECLARATIONS],
-                    providers: [{ provide: DomSanitizer, useClass: CdkListboxCustomSanitizer }],
                 }]
         }] });
 
