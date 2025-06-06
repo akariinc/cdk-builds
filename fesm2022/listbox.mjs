@@ -5,61 +5,22 @@ import { SelectionModel } from '@angular/cdk/collections';
 import { A, hasModifierKey, SPACE, ENTER, HOME, END, UP_ARROW, DOWN_ARROW, LEFT_ARROW, RIGHT_ARROW } from '@angular/cdk/keycodes';
 import { Platform } from '@angular/cdk/platform';
 import * as i0 from '@angular/core';
-import { SecurityContext, Injectable, inject, signal, ElementRef, booleanAttribute, Directive, Input, NgZone, ChangeDetectorRef, forwardRef, Output, ContentChildren, NgModule } from '@angular/core';
+import { signal, inject, ElementRef, booleanAttribute, Directive, Input, NgZone, ChangeDetectorRef, forwardRef, Output, ContentChildren, NgModule } from '@angular/core';
 import { NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Subject, defer, merge, fromEvent } from 'rxjs';
 import { startWith, switchMap, map, takeUntil, filter } from 'rxjs/operators';
-import { DomSanitizer } from '@angular/platform-browser';
 
-/**
- * Custom sanitizer that allows &lt;svg&gt; but removes dangerous content
- * @docs-private
- */
-class CdkListboxCustomSanitizer extends DomSanitizer {
-    constructor() {
-        super();
-    }
-    /** Main sanitization function */
-    sanitize(context, value) {
-        if (context === SecurityContext.HTML && typeof value === 'string') {
-            return this._sanitizeHtml(value);
-        }
-        return value;
-    }
-    /** Function to sanitize HTML while keeping &lt;svg&gt; */
-    _sanitizeHtml(html) {
-        /** Remove &lt;script&gt;, &lt;iframe&gt;, &lt;object&gt;, &lt;embed&gt;, &lt;form&gt;, &lt;style&gt;, &lt;meta&gt;, &lt;link&gt;, &lt;base&gt; */
-        html = html.replace(/<(script|iframe|object|embed|form|meta|style|link|base)[^>]*>[\s\S]*?<\/\1>/gi, '');
-        // Remove dangerous attributes (onX events, javascript: links)
-        html = html.replace(/\son\w+="[^"]*"/gi, ''); // Remove event handlers (e.g., onclick)
-        html = html.replace(/\son\w+='[^']*'/gi, ''); // Remove event handlers (single quotes)
-        html = html.replace(/\shref=['"](javascript:)[^'"]*['"]/gi, 'href="#"'); // Prevent javascript: links
-        html = html.replace(/\ssrc=['"](javascript:)[^'"]*['"]/gi, ''); // Prevent javascript: in src
-        return html;
-    }
-    /** Bypass security trust for safe HTML */
-    bypassSecurityTrustHtml(value) {
-        return value;
-    }
-    bypassSecurityTrustStyle(value) {
-        return value;
-    }
-    bypassSecurityTrustScript(value) {
-        return value;
-    }
-    bypassSecurityTrustUrl(value) {
-        return value;
-    }
-    bypassSecurityTrustResourceUrl(value) {
-        return value;
-    }
-    static { this.ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "18.2.0-next.2", ngImport: i0, type: CdkListboxCustomSanitizer, deps: [], target: i0.ɵɵFactoryTarget.Injectable }); }
-    static { this.ɵprov = i0.ɵɵngDeclareInjectable({ minVersion: "12.0.0", version: "18.2.0-next.2", ngImport: i0, type: CdkListboxCustomSanitizer, providedIn: 'root' }); }
-}
-i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "18.2.0-next.2", ngImport: i0, type: CdkListboxCustomSanitizer, decorators: [{
-            type: Injectable,
-            args: [{ providedIn: 'root' }]
-        }], ctorParameters: () => [] });
+/** Function to sanitize HTML while keeping &lt;svg&gt; */
+const sanitizeHtml = (html) => {
+    /** Remove &lt;script&gt;, &lt;iframe&gt;, &lt;object&gt;, &lt;embed&gt;, &lt;form&gt;, &lt;style&gt;, &lt;meta&gt;, &lt;link&gt;, &lt;base&gt; */
+    html = html.replace(/<(script|iframe|object|embed|form|meta|style|link|base)[^>]*>[\s\S]*?<\/\1>/gi, '');
+    // Remove dangerous attributes (onX events, javascript: links)
+    html = html.replace(/\son\w+="[^"]*"/gi, ''); // Remove event handlers (e.g., onclick)
+    html = html.replace(/\son\w+='[^']*'/gi, ''); // Remove event handlers (single quotes)
+    html = html.replace(/\shref=['"](javascript:)[^'"]*['"]/gi, 'href="#"'); // Prevent javascript: links
+    html = html.replace(/\ssrc=['"](javascript:)[^'"]*['"]/gi, ''); // Prevent javascript: in src
+    return html;
+};
 
 /** The next id to use for creating unique DOM IDs. */
 let nextId = 0;
@@ -96,8 +57,6 @@ class CdkOption {
         this._generatedId = `cdk-option-${nextId++}`;
         /** Display name of the option */
         this.display = null;
-        /** Custom sanitizer */
-        this._customSanitizer = inject(CdkListboxCustomSanitizer);
         this._disabled = signal(false);
         this._enabledTabIndex = signal(undefined);
         /** The option's host element */
@@ -133,7 +92,7 @@ class CdkOption {
         this._enabledTabIndex.set(value);
     }
     ngOnInit() {
-        const htmlContent = this._customSanitizer.sanitize(SecurityContext.HTML, (this.display || this.value || ''));
+        const htmlContent = sanitizeHtml((this.display || this.value || ''));
         this.element.innerHTML = htmlContent || '';
     }
     ngOnChanges(changes) {
@@ -141,11 +100,11 @@ class CdkOption {
         // to avoid, use custom validation sanitizer and do not use renderer.
         if (('value' in changes && !this.display) || 'display' in changes) {
             if ('display' in changes) {
-                const displayValue = this._customSanitizer.sanitize(SecurityContext.HTML, changes['display'].currentValue);
+                const displayValue = sanitizeHtml(changes['display'].currentValue);
                 this.element.innerHTML = displayValue || '';
             }
             if ('value' in changes) {
-                const value = this._customSanitizer.sanitize(SecurityContext.HTML, changes['value'].currentValue);
+                const value = sanitizeHtml(changes['value'].currentValue);
                 this.element.innerHTML = value || '';
             }
         }
