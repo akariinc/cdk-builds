@@ -284,7 +284,10 @@ export declare class CdkOption<T = unknown> implements OnInit, OnChanges, ListKe
     private _generatedId;
     /** The value of this option. */
     value: T;
-    /** Display name of the option */
+    /**
+     * HTML content (may include inline SVG) rendered as the option's display.
+     * Sanitized with the fork's SVG-preserving sanitizer before being rendered.
+     */
     display: string | null;
     /**
      * The text used to locate this item during listbox typeahead. If not specified,
@@ -307,8 +310,19 @@ export declare class CdkOption<T = unknown> implements OnInit, OnChanges, ListKe
     protected destroyed: Subject<void>;
     /** Emits when the option is clicked. */
     readonly _clicked: Subject<MouseEvent>;
+    /** Whether `_renderContent` may overwrite the element's content (see below). */
+    private _canRenderValue;
+    /** Whether the first render (in `ngOnInit`) already happened. */
+    private _contentInitialized;
     ngOnInit(): void;
     ngOnChanges(changes: SimpleChanges): void;
+    /**
+     * Renders the option's `display` HTML (or its `value` as a fallback) into the host
+     * element. The HTML cannot go through an Angular binding or `Renderer2` because
+     * Angular's own sanitizer would strip the SVG content this fork exists to allow;
+     * instead it is sanitized with the fork's SVG-preserving sanitizer.
+     */
+    private _renderContent;
     ngOnDestroy(): void;
     /** Whether this option is selected. */
     isSelected(): boolean;

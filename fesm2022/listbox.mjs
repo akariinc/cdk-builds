@@ -10,16 +10,146 @@ import { NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Subject, defer, merge, fromEvent } from 'rxjs';
 import { startWith, switchMap, map, takeUntil, filter } from 'rxjs/operators';
 
-/** Function to sanitize HTML while keeping &lt;svg&gt; */
+/**
+ * DOM-based HTML sanitizer that preserves inline SVG.
+ *
+ * Angular's built-in sanitizer strips SVG elements, which is the reason this fork
+ * exists. This implementation follows the same architecture as Angular's sanitizer
+ * (parse into an inert document, walk the tree, keep only allowlisted elements and
+ * attributes, validate URL-valued attributes) instead of regex rewriting, which is
+ * bypassable (unquoted event handlers, unclosed tags, entity-encoded URLs, etc.).
+ *
+ * Intentionally NOT allowed: script, style, iframe, object, embed, form, meta,
+ * link, base, template, math, foreignObject (mXSS vector), SMIL animation
+ * elements (attribute-injection vector, e.g. `<animate attributeName="href">`).
+ */
+/** HTML elements that are safe to keep (same set Angular's sanitizer allows). */
+const HTML_ELEMENTS = 'address,article,aside,blockquote,caption,center,del,details,dialog,dir,div,dl,dd,dt,' +
+    'figure,figcaption,footer,h1,h2,h3,h4,h5,h6,header,hgroup,hr,ins,main,map,menu,nav,ol,' +
+    'li,ul,pre,section,summary,table,tbody,td,tfoot,th,thead,tr,a,abbr,acronym,audio,b,bdi,' +
+    'bdo,big,br,cite,code,em,font,i,img,kbd,label,mark,picture,q,rp,rt,ruby,s,samp,small,' +
+    'source,span,strike,strong,sub,sup,time,track,tt,u,var,video';
+/** SVG elements that are safe to keep. */
+const SVG_ELEMENTS = 'svg,circle,clippath,defs,desc,ellipse,filter,feblend,fecolormatrix,fecomponenttransfer,' +
+    'fecomposite,feconvolvematrix,fediffuselighting,fedisplacementmap,fedistantlight,' +
+    'fedropshadow,feflood,fefunca,fefuncb,fefuncg,fefuncr,fegaussianblur,femerge,femergenode,' +
+    'femorphology,feoffset,fepointlight,fespecularlighting,fespotlight,fetile,feturbulence,' +
+    'g,image,line,lineargradient,marker,mask,path,pattern,polygon,polyline,radialgradient,' +
+    'rect,stop,switch,symbol,text,textpath,title,tspan,use,view';
+/** Attributes whose value is a URL and must match a safe pattern. */
+const URL_ATTRIBUTES = 'background,cite,href,longdesc,src,xlink:href,xml:base';
+/** Non-URL attributes that are safe to keep (HTML + SVG presentation attributes). */
+const SAFE_ATTRIBUTES = 'abbr,accesskey,align,alt,autoplay,axis,bgcolor,border,cellpadding,cellspacing,class,clear,' +
+    'color,cols,colspan,compact,controls,coords,datetime,dir,download,face,headers,height,' +
+    'hidden,hreflang,hspace,ismap,itemprop,itemscope,lang,language,loop,media,muted,nohref,' +
+    'nowrap,open,preload,rel,rev,role,rows,rowspan,rules,scope,scrolling,shape,size,sizes,span,' +
+    'srclang,srcset,start,style,summary,tabindex,target,title,translate,type,usemap,valign,' +
+    'value,vspace,width,' +
+    // SVG presentation and geometry attributes.
+    'accent-height,alignment-baseline,baseline-shift,baseprofile,bbox,cap-height,clip,' +
+    'clip-path,clip-rule,clippathunits,color-interpolation,color-interpolation-filters,' +
+    'color-profile,color-rendering,cursor,cx,cy,d,direction,display,dominant-baseline,dx,dy,' +
+    'fill,fill-opacity,fill-rule,filterunits,flood-color,flood-opacity,font-family,font-size,' +
+    'font-size-adjust,font-stretch,font-style,font-variant,font-weight,fx,fy,' +
+    'glyph-orientation-horizontal,glyph-orientation-vertical,gradienttransform,gradientunits,' +
+    'image-rendering,in,in2,k1,k2,k3,k4,kerning,letter-spacing,lighting-color,marker-end,' +
+    'marker-mid,marker-start,markerheight,markerunits,markerwidth,mask,maskcontentunits,' +
+    'maskunits,mode,offset,opacity,operator,order,orient,overflow,paint-order,pathlength,' +
+    'patterncontentunits,patterntransform,patternunits,points,preserveaspectratio,r,radius,' +
+    'refx,refy,repeatcount,repeatdur,requiredextensions,requiredfeatures,restart,result,rotate,' +
+    'rx,ry,scale,seed,shape-rendering,spreadmethod,startoffset,stddeviation,stop-color,' +
+    'stop-opacity,stroke,stroke-dasharray,stroke-dashoffset,stroke-linecap,stroke-linejoin,' +
+    'stroke-miterlimit,stroke-opacity,stroke-width,systemlanguage,text-anchor,text-decoration,' +
+    'text-rendering,transform,transform-origin,u1,u2,unicode-bidi,vector-effect,version,' +
+    'viewbox,visibility,white-space,word-spacing,writing-mode,x,x1,x2,xmlns,xmlns:xlink,' +
+    'xml:lang,xml:space,y,y1,y2,zoomandpan';
+const toSet = (csv) => new Set(csv.split(','));
+const ALLOWED_ELEMENTS = toSet(HTML_ELEMENTS + ',' + SVG_ELEMENTS);
+const ALLOWED_ATTRIBUTES = toSet(SAFE_ATTRIBUTES);
+const URL_ATTRIBUTE_SET = toSet(URL_ATTRIBUTES);
+/**
+ * Safe URL pattern (same as Angular's): allows http(s), mailto, ftp, tel, sms
+ * and relative URLs; rejects `javascript:`, `vbscript:` and other schemes.
+ */
+const SAFE_URL_PATTERN = /^(?:(?:https?|mailto|ftp|tel|file|sms):|[^&:/?#]*(?:[/?#]|$))/i;
+/** Safe `data:` URL pattern (same as Angular's): base64 image/video/audio only. */
+const DATA_URL_PATTERN = /^data:(?:image\/(?:bmp|gif|jpeg|jpg|png|tiff|webp)|video\/(?:mpeg|mp4|ogg|webm)|audio\/(?:mp3|oga|ogg|opus));base64,[a-z0-9+/]+=*$/i;
+const isSafeUrl = (value) => {
+    const url = value.trim();
+    return SAFE_URL_PATTERN.test(url) || DATA_URL_PATTERN.test(url);
+};
+const escapeHtml = (text) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+/** Parses HTML into an inert document so nothing executes or loads while sanitizing. */
+const parseInert = (html) => {
+    if (typeof DOMParser !== 'undefined') {
+        return new DOMParser().parseFromString(`<body>${html}</body>`, 'text/html').body;
+    }
+    if (typeof document !== 'undefined') {
+        const inertDocument = document.implementation.createHTMLDocument('sanitization');
+        inertDocument.body.innerHTML = html;
+        return inertDocument.body;
+    }
+    return null;
+};
+const sanitizeAttributes = (element) => {
+    const isUseElement = element.nodeName.toLowerCase() === 'use';
+    for (const attribute of Array.from(element.attributes)) {
+        const name = attribute.name.toLowerCase();
+        if (URL_ATTRIBUTE_SET.has(name)) {
+            // `<use>` may only reference same-document fragments; external or data:
+            // references are a known SVG attack vector.
+            const safe = isUseElement
+                ? attribute.value.trim().startsWith('#')
+                : isSafeUrl(attribute.value);
+            if (!safe) {
+                element.removeAttribute(attribute.name);
+            }
+        }
+        else if (name.startsWith('on') || !ALLOWED_ATTRIBUTES.has(name)) {
+            element.removeAttribute(attribute.name);
+        }
+    }
+};
+const sanitizeChildren = (node) => {
+    for (const child of Array.from(node.childNodes)) {
+        if (child.nodeType === 1 /* ELEMENT_NODE */) {
+            const element = child;
+            if (!ALLOWED_ELEMENTS.has(element.nodeName.toLowerCase())) {
+                // Drop disallowed elements entirely, including their subtree.
+                node.removeChild(child);
+                continue;
+            }
+            sanitizeAttributes(element);
+            sanitizeChildren(element);
+        }
+        else if (child.nodeType !== 3 /* TEXT_NODE */) {
+            // Remove comments, CDATA and processing instructions — all are mXSS vectors.
+            node.removeChild(child);
+        }
+    }
+};
+/** Sanitizes an HTML string while keeping inline `<svg>` content. */
 const sanitizeHtml = (html) => {
-    /** Remove &lt;script&gt;, &lt;iframe&gt;, &lt;object&gt;, &lt;embed&gt;, &lt;form&gt;, &lt;style&gt;, &lt;meta&gt;, &lt;link&gt;, &lt;base&gt; */
-    html = html.replace(/<(script|iframe|object|embed|form|meta|style|link|base)[^>]*>[\s\S]*?<\/\1>/gi, '');
-    // Remove dangerous attributes (onX events, javascript: links)
-    html = html.replace(/\son\w+="[^"]*"/gi, ''); // Remove event handlers (e.g., onclick)
-    html = html.replace(/\son\w+='[^']*'/gi, ''); // Remove event handlers (single quotes)
-    html = html.replace(/\shref=['"](javascript:)[^'"]*['"]/gi, 'href="#"'); // Prevent javascript: links
-    html = html.replace(/\ssrc=['"](javascript:)[^'"]*['"]/gi, ''); // Prevent javascript: in src
-    return html;
+    if (!html) {
+        return '';
+    }
+    const body = parseInert(html);
+    if (body === null) {
+        // No DOM available (e.g. server-side rendering): render as plain text.
+        return escapeHtml(html);
+    }
+    sanitizeChildren(body);
+    return body.innerHTML;
+};
+/** Extracts the plain text of an HTML string (e.g. for ARIA descriptions). */
+const htmlToPlainText = (html) => {
+    if (!html) {
+        return '';
+    }
+    const body = parseInert(html);
+    return (body === null ? html.replace(/<[^>]*>/g, ' ') : body.textContent || '')
+        .replace(/\s+/g, ' ')
+        .trim();
 };
 
 /** The next id to use for creating unique DOM IDs. */
@@ -55,7 +185,10 @@ class ListboxSelectionModel extends SelectionModel {
 class CdkOption {
     constructor() {
         this._generatedId = `cdk-option-${nextId++}`;
-        /** Display name of the option */
+        /**
+         * HTML content (may include inline SVG) rendered as the option's display.
+         * Sanitized with the fork's SVG-preserving sanitizer before being rendered.
+         */
         this.display = null;
         this._disabled = signal(false);
         this._enabledTabIndex = signal(undefined);
@@ -67,6 +200,10 @@ class CdkOption {
         this.destroyed = new Subject();
         /** Emits when the option is clicked. */
         this._clicked = new Subject();
+        /** Whether `_renderContent` may overwrite the element's content (see below). */
+        this._canRenderValue = null;
+        /** Whether the first render (in `ngOnInit`) already happened. */
+        this._contentInitialized = false;
     }
     /** The id of the option's host element. */
     get id() {
@@ -92,21 +229,39 @@ class CdkOption {
         this._enabledTabIndex.set(value);
     }
     ngOnInit() {
-        const htmlContent = sanitizeHtml((this.display || this.value || ''));
-        this.element.innerHTML = htmlContent || '';
+        this._contentInitialized = true;
+        this._renderContent();
     }
     ngOnChanges(changes) {
-        // Here we need svg to be renderered but angular's new sanitizer will reject it.
-        // to avoid, use custom validation sanitizer and do not use renderer.
-        if (('value' in changes && !this.display) || 'display' in changes) {
-            if ('display' in changes) {
-                const displayValue = sanitizeHtml(changes['display'].currentValue);
-                this.element.innerHTML = displayValue || '';
-            }
-            if ('value' in changes) {
-                const value = sanitizeHtml(changes['value'].currentValue);
-                this.element.innerHTML = value || '';
-            }
+        // Wait for `ngOnInit` so the projected content (if any) can be detected before
+        // the first render. `ngOnChanges` fires before `ngOnInit` for the initial values.
+        if (this._contentInitialized && ('display' in changes || 'value' in changes)) {
+            this._renderContent();
+        }
+    }
+    /**
+     * Renders the option's `display` HTML (or its `value` as a fallback) into the host
+     * element. The HTML cannot go through an Angular binding or `Renderer2` because
+     * Angular's own sanitizer would strip the SVG content this fork exists to allow;
+     * instead it is sanitized with the fork's SVG-preserving sanitizer.
+     */
+    _renderContent() {
+        if (this.display != null) {
+            this.element.innerHTML = sanitizeHtml(String(this.display));
+            this._canRenderValue = false;
+            return;
+        }
+        // Rendering the value is only a fallback for options authored without content
+        // (e.g. `<li [cdkOption]="size"></li>`). Never overwrite projected content, and
+        // never render non-string values.
+        if (typeof this.value !== 'string') {
+            return;
+        }
+        if (this._canRenderValue === null) {
+            this._canRenderValue = !this.element.textContent?.trim();
+        }
+        if (this._canRenderValue) {
+            this.element.innerHTML = sanitizeHtml(this.value);
         }
     }
     ngOnDestroy() {
