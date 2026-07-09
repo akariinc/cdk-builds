@@ -1,20 +1,109 @@
-import { ActiveDescendantKeyManager } from '@angular/cdk/a11y';
-import { AfterContentInit } from '@angular/core';
-import { ChangeDetectorRef } from '@angular/core';
-import { ControlValueAccessor } from '@angular/forms';
-import { Highlightable } from '@angular/cdk/a11y';
 import * as i0 from '@angular/core';
-import { ListKeyManagerOption } from '@angular/cdk/a11y';
-import { NgZone } from '@angular/core';
-import { OnChanges } from '@angular/core';
-import { OnDestroy } from '@angular/core';
-import { OnInit } from '@angular/core';
-import { QueryList } from '@angular/core';
-import { SelectionModel } from '@angular/cdk/collections';
-import { SimpleChanges } from '@angular/core';
+import { OnInit, OnChanges, OnDestroy, SimpleChanges, AfterContentInit, QueryList, NgZone, ChangeDetectorRef } from '@angular/core';
+import { Highlightable, ActiveDescendantKeyManager } from '../activedescendant-key-manager.d.js';
+import { ListKeyManagerOption } from '../list-key-manager.d.js';
 import { Subject } from 'rxjs';
+import { SelectionModel } from '../selection-model.d.js';
+import { ControlValueAccessor } from '@angular/forms';
 
-export declare class CdkListbox<T = unknown> implements AfterContentInit, OnDestroy, ControlValueAccessor {
+/**
+ * An implementation of SelectionModel that internally always represents the selection as a
+ * multi-selection. This is necessary so that we can recover the full selection if the user
+ * switches the listbox from single-selection to multi-selection after initialization.
+ *
+ * This selection model may report multiple selected values, even if it is in single-selection
+ * mode. It is up to the user (CdkListbox) to check for invalid selections.
+ */
+declare class ListboxSelectionModel<T> extends SelectionModel<T> {
+    multiple: boolean;
+    constructor(multiple?: boolean, initiallySelectedValues?: T[], emitChanges?: boolean, compareWith?: (o1: T, o2: T) => boolean);
+    isMultipleSelection(): boolean;
+    select(...values: T[]): boolean;
+}
+/** A selectable option in a listbox. */
+declare class CdkOption<T = unknown> implements OnInit, OnChanges, ListKeyManagerOption, Highlightable, OnDestroy {
+    /** The id of the option's host element. */
+    get id(): string;
+    set id(value: string);
+    private _id;
+    private _generatedId;
+    /** The value of this option. */
+    value: T;
+    /**
+     * HTML content (may include inline SVG) rendered as the option's display.
+     * Sanitized with the fork's SVG-preserving sanitizer before being rendered.
+     */
+    display: string | null;
+    /**
+     * The text used to locate this item during listbox typeahead. If not specified,
+     * the `textContent` of the item will be used.
+     */
+    typeaheadLabel: string | null;
+    /** Whether this option is disabled. */
+    get disabled(): boolean;
+    set disabled(value: boolean);
+    private _disabled;
+    /** The tabindex of the option when it is enabled. */
+    get enabledTabIndex(): number | null | undefined;
+    set enabledTabIndex(value: number | null | undefined);
+    private _enabledTabIndex;
+    /** The option's host element */
+    readonly element: HTMLElement;
+    /** The parent listbox this option belongs to. */
+    protected readonly listbox: CdkListbox<T>;
+    /** Emits when the option is destroyed. */
+    protected destroyed: Subject<void>;
+    /** Emits when the option is clicked. */
+    readonly _clicked: Subject<MouseEvent>;
+    /** Whether `_renderContent` may overwrite the element's content (see below). */
+    private _canRenderValue;
+    /** Whether the first render (in `ngOnInit`) already happened. */
+    private _contentInitialized;
+    ngOnInit(): void;
+    ngOnChanges(changes: SimpleChanges): void;
+    /**
+     * Renders the option's `display` HTML (or its `value` as a fallback) into the host
+     * element. The HTML cannot go through an Angular binding or `Renderer2` because
+     * Angular's own sanitizer would strip the SVG content this fork exists to allow;
+     * instead it is sanitized with the fork's SVG-preserving sanitizer.
+     */
+    private _renderContent;
+    ngOnDestroy(): void;
+    /** Whether this option is selected. */
+    isSelected(): boolean;
+    /** Whether this option is active. */
+    isActive(): boolean;
+    /** Toggle the selected state of this option. */
+    toggle(): void;
+    /** Select this option if it is not selected. */
+    select(): void;
+    /** Deselect this option if it is selected. */
+    deselect(): void;
+    /** Focus this option. */
+    focus(): void;
+    /** Get the label for this element which is required by the FocusableOption interface. */
+    getLabel(): string;
+    /**
+     * No-op implemented as a part of `Highlightable`.
+     * @docs-private
+     */
+    setActiveStyles(): void;
+    /**
+     * No-op implemented as a part of `Highlightable`.
+     * @docs-private
+     */
+    setInactiveStyles(): void;
+    /** Handle focus events on the option. */
+    protected _handleFocus(): void;
+    /** Get the tabindex for this option. */
+    protected _getTabIndex(): number | null | undefined;
+    static ɵfac: i0.ɵɵFactoryDeclaration<CdkOption<any>, never>;
+    static ɵdir: i0.ɵɵDirectiveDeclaration<CdkOption<any>, "[cdkOption]", ["cdkOption"], { "id": { "alias": "id"; "required": false; }; "value": { "alias": "cdkOption"; "required": false; }; "display": { "alias": "display"; "required": false; }; "typeaheadLabel": { "alias": "cdkOptionTypeaheadLabel"; "required": false; }; "disabled": { "alias": "cdkOptionDisabled"; "required": false; }; "enabledTabIndex": { "alias": "tabindex"; "required": false; }; }, {}, never, never, true, never>;
+    static ngAcceptInputType_disabled: unknown;
+    static ngAcceptInputType_enabledTabIndex: unknown;
+}
+declare class CdkListbox<T = unknown> implements AfterContentInit, OnDestroy, ControlValueAccessor {
+    private _cleanupWindowBlur;
     /** The id of the option's host element. */
     get id(): string;
     set id(value: string);
@@ -42,7 +131,7 @@ export declare class CdkListbox<T = unknown> implements AfterContentInit, OnDest
     set useActiveDescendant(value: boolean);
     private _useActiveDescendant;
     /** The orientation of the listbox. Only affects keyboard interaction, not visual layout. */
-    get orientation(): 'horizontal' | 'vertical';
+    get orientation(): "horizontal" | "vertical";
     set orientation(value: 'horizontal' | 'vertical');
     private _orientation;
     /** The function used to compare option values. */
@@ -255,11 +344,6 @@ export declare class CdkListbox<T = unknown> implements AfterContentInit, OnDest
     private _getInvalidOptionValues;
     /** Get the index of the last triggered option. */
     private _getLastTriggeredIndex;
-    /**
-     * Set previous active option as active option on window blur.
-     * This ensures that the `activeOption` matches the actual focused element when the user returns to the document.
-     */
-    private _setPreviousActiveOptionAsActiveOptionOnWindowBlur;
     static ɵfac: i0.ɵɵFactoryDeclaration<CdkListbox<any>, never>;
     static ɵdir: i0.ɵɵDirectiveDeclaration<CdkListbox<any>, "[cdkListbox]", ["cdkListbox"], { "id": { "alias": "id"; "required": false; }; "enabledTabIndex": { "alias": "tabindex"; "required": false; }; "value": { "alias": "cdkListboxValue"; "required": false; }; "multiple": { "alias": "cdkListboxMultiple"; "required": false; }; "disabled": { "alias": "cdkListboxDisabled"; "required": false; }; "useActiveDescendant": { "alias": "cdkListboxUseActiveDescendant"; "required": false; }; "orientation": { "alias": "cdkListboxOrientation"; "required": false; }; "compareWith": { "alias": "cdkListboxCompareWith"; "required": false; }; "navigationWrapDisabled": { "alias": "cdkListboxNavigationWrapDisabled"; "required": false; }; "navigateDisabledOptions": { "alias": "cdkListboxNavigatesDisabledOptions"; "required": false; }; }, { "valueChange": "cdkListboxValueChange"; }, ["options"], never, true, never>;
     static ngAcceptInputType_multiple: unknown;
@@ -268,120 +352,8 @@ export declare class CdkListbox<T = unknown> implements AfterContentInit, OnDest
     static ngAcceptInputType_navigationWrapDisabled: unknown;
     static ngAcceptInputType_navigateDisabledOptions: unknown;
 }
-
-export declare class CdkListboxModule {
-    static ɵfac: i0.ɵɵFactoryDeclaration<CdkListboxModule, never>;
-    static ɵmod: i0.ɵɵNgModuleDeclaration<CdkListboxModule, never, [typeof i1.CdkListbox, typeof i1.CdkOption], [typeof i1.CdkListbox, typeof i1.CdkOption]>;
-    static ɵinj: i0.ɵɵInjectorDeclaration<CdkListboxModule>;
-}
-
-/** A selectable option in a listbox. */
-export declare class CdkOption<T = unknown> implements OnInit, OnChanges, ListKeyManagerOption, Highlightable, OnDestroy {
-    /** The id of the option's host element. */
-    get id(): string;
-    set id(value: string);
-    private _id;
-    private _generatedId;
-    /** The value of this option. */
-    value: T;
-    /**
-     * HTML content (may include inline SVG) rendered as the option's display.
-     * Sanitized with the fork's SVG-preserving sanitizer before being rendered.
-     */
-    display: string | null;
-    /**
-     * The text used to locate this item during listbox typeahead. If not specified,
-     * the `textContent` of the item will be used.
-     */
-    typeaheadLabel: string | null;
-    /** Whether this option is disabled. */
-    get disabled(): boolean;
-    set disabled(value: boolean);
-    private _disabled;
-    /** The tabindex of the option when it is enabled. */
-    get enabledTabIndex(): number | null | undefined;
-    set enabledTabIndex(value: number | null | undefined);
-    private _enabledTabIndex;
-    /** The option's host element */
-    readonly element: HTMLElement;
-    /** The parent listbox this option belongs to. */
-    protected readonly listbox: CdkListbox<T>;
-    /** Emits when the option is destroyed. */
-    protected destroyed: Subject<void>;
-    /** Emits when the option is clicked. */
-    readonly _clicked: Subject<MouseEvent>;
-    /** Whether `_renderContent` may overwrite the element's content (see below). */
-    private _canRenderValue;
-    /** Whether the first render (in `ngOnInit`) already happened. */
-    private _contentInitialized;
-    ngOnInit(): void;
-    ngOnChanges(changes: SimpleChanges): void;
-    /**
-     * Renders the option's `display` HTML (or its `value` as a fallback) into the host
-     * element. The HTML cannot go through an Angular binding or `Renderer2` because
-     * Angular's own sanitizer would strip the SVG content this fork exists to allow;
-     * instead it is sanitized with the fork's SVG-preserving sanitizer.
-     */
-    private _renderContent;
-    ngOnDestroy(): void;
-    /** Whether this option is selected. */
-    isSelected(): boolean;
-    /** Whether this option is active. */
-    isActive(): boolean;
-    /** Toggle the selected state of this option. */
-    toggle(): void;
-    /** Select this option if it is not selected. */
-    select(): void;
-    /** Deselect this option if it is selected. */
-    deselect(): void;
-    /** Focus this option. */
-    focus(): void;
-    /** Get the label for this element which is required by the FocusableOption interface. */
-    getLabel(): string;
-    /**
-     * No-op implemented as a part of `Highlightable`.
-     * @docs-private
-     */
-    setActiveStyles(): void;
-    /**
-     * No-op implemented as a part of `Highlightable`.
-     * @docs-private
-     */
-    setInactiveStyles(): void;
-    /** Handle focus events on the option. */
-    protected _handleFocus(): void;
-    /** Get the tabindex for this option. */
-    protected _getTabIndex(): number | null | undefined;
-    static ɵfac: i0.ɵɵFactoryDeclaration<CdkOption<any>, never>;
-    static ɵdir: i0.ɵɵDirectiveDeclaration<CdkOption<any>, "[cdkOption]", ["cdkOption"], { "id": { "alias": "id"; "required": false; }; "value": { "alias": "cdkOption"; "required": false; }; "display": { "alias": "display"; "required": false; }; "typeaheadLabel": { "alias": "cdkOptionTypeaheadLabel"; "required": false; }; "disabled": { "alias": "cdkOptionDisabled"; "required": false; }; "enabledTabIndex": { "alias": "tabindex"; "required": false; }; }, {}, never, never, true, never>;
-    static ngAcceptInputType_disabled: unknown;
-}
-
-declare namespace i1 {
-    export {
-        CdkOption,
-        CdkListbox,
-        ListboxValueChangeEvent
-    }
-}
-
-/**
- * An implementation of SelectionModel that internally always represents the selection as a
- * multi-selection. This is necessary so that we can recover the full selection if the user
- * switches the listbox from single-selection to multi-selection after initialization.
- *
- * This selection model may report multiple selected values, even if it is in single-selection
- * mode. It is up to the user (CdkListbox) to check for invalid selections.
- */
-declare class ListboxSelectionModel<T> extends SelectionModel<T> {
-    multiple: boolean;
-    constructor(multiple?: boolean, initiallySelectedValues?: T[], emitChanges?: boolean, compareWith?: (o1: T, o2: T) => boolean);
-    isMultipleSelection(): boolean;
-    select(...values: T[]): boolean | void;
-}
-
 /** Change event that is fired whenever the value of the listbox changes. */
-export declare interface ListboxValueChangeEvent<T> {
+interface ListboxValueChangeEvent<T> {
     /** The new value of the listbox. */
     readonly value: readonly T[];
     /** Reference to the listbox that emitted the event. */
@@ -390,4 +362,11 @@ export declare interface ListboxValueChangeEvent<T> {
     readonly option: CdkOption<T> | null;
 }
 
-export { }
+declare class CdkListboxModule {
+    static ɵfac: i0.ɵɵFactoryDeclaration<CdkListboxModule, never>;
+    static ɵmod: i0.ɵɵNgModuleDeclaration<CdkListboxModule, never, [typeof CdkListbox, typeof CdkOption], [typeof CdkListbox, typeof CdkOption]>;
+    static ɵinj: i0.ɵɵInjectorDeclaration<CdkListboxModule>;
+}
+
+export { CdkListbox, CdkListboxModule, CdkOption };
+export type { ListboxValueChangeEvent };
