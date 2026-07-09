@@ -4,12 +4,45 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.findAllSubstringIndices = findAllSubstringIndices;
 exports.isStringLiteralLike = isStringLiteralLike;
-const ts = require("typescript");
+const ts = __importStar(require("typescript"));
 /** Finds all start indices of the given search string in the input string. */
 function findAllSubstringIndices(input, search) {
     const result = [];
@@ -29,4 +62,4 @@ function findAllSubstringIndices(input, search) {
 function isStringLiteralLike(node) {
     return ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node);
 }
-//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoibGl0ZXJhbC5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzIjpbIi4uLy4uLy4uLy4uLy4uLy4uLy4uLy4uL3NyYy9jZGsvc2NoZW1hdGljcy9uZy11cGRhdGUvdHlwZXNjcmlwdC9saXRlcmFsLnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7QUFBQTs7Ozs7O0dBTUc7O0FBS0gsMERBT0M7QUFTRCxrREFJQztBQXZCRCxpQ0FBaUM7QUFFakMsOEVBQThFO0FBQzlFLFNBQWdCLHVCQUF1QixDQUFDLEtBQWEsRUFBRSxNQUFjO0lBQ25FLE1BQU0sTUFBTSxHQUFhLEVBQUUsQ0FBQztJQUM1QixJQUFJLENBQUMsR0FBRyxDQUFDLENBQUMsQ0FBQztJQUNYLE9BQU8sQ0FBQyxDQUFDLEdBQUcsS0FBSyxDQUFDLE9BQU8sQ0FBQyxNQUFNLEVBQUUsQ0FBQyxHQUFHLENBQUMsQ0FBQyxDQUFDLEtBQUssQ0FBQyxDQUFDLEVBQUUsQ0FBQztRQUNqRCxNQUFNLENBQUMsSUFBSSxDQUFDLENBQUMsQ0FBQyxDQUFDO0lBQ2pCLENBQUM7SUFDRCxPQUFPLE1BQU0sQ0FBQztBQUNoQixDQUFDO0FBRUQ7Ozs7OztHQU1HO0FBQ0gsU0FBZ0IsbUJBQW1CLENBQ2pDLElBQWE7SUFFYixPQUFPLEVBQUUsQ0FBQyxlQUFlLENBQUMsSUFBSSxDQUFDLElBQUksRUFBRSxDQUFDLCtCQUErQixDQUFDLElBQUksQ0FBQyxDQUFDO0FBQzlFLENBQUMiLCJzb3VyY2VzQ29udGVudCI6WyIvKipcbiAqIEBsaWNlbnNlXG4gKiBDb3B5cmlnaHQgR29vZ2xlIExMQyBBbGwgUmlnaHRzIFJlc2VydmVkLlxuICpcbiAqIFVzZSBvZiB0aGlzIHNvdXJjZSBjb2RlIGlzIGdvdmVybmVkIGJ5IGFuIE1JVC1zdHlsZSBsaWNlbnNlIHRoYXQgY2FuIGJlXG4gKiBmb3VuZCBpbiB0aGUgTElDRU5TRSBmaWxlIGF0IGh0dHBzOi8vYW5ndWxhci5pby9saWNlbnNlXG4gKi9cblxuaW1wb3J0ICogYXMgdHMgZnJvbSAndHlwZXNjcmlwdCc7XG5cbi8qKiBGaW5kcyBhbGwgc3RhcnQgaW5kaWNlcyBvZiB0aGUgZ2l2ZW4gc2VhcmNoIHN0cmluZyBpbiB0aGUgaW5wdXQgc3RyaW5nLiAqL1xuZXhwb3J0IGZ1bmN0aW9uIGZpbmRBbGxTdWJzdHJpbmdJbmRpY2VzKGlucHV0OiBzdHJpbmcsIHNlYXJjaDogc3RyaW5nKTogbnVtYmVyW10ge1xuICBjb25zdCByZXN1bHQ6IG51bWJlcltdID0gW107XG4gIGxldCBpID0gLTE7XG4gIHdoaWxlICgoaSA9IGlucHV0LmluZGV4T2Yoc2VhcmNoLCBpICsgMSkpICE9PSAtMSkge1xuICAgIHJlc3VsdC5wdXNoKGkpO1xuICB9XG4gIHJldHVybiByZXN1bHQ7XG59XG5cbi8qKlxuICogQ2hlY2tzIHdoZXRoZXIgdGhlIGdpdmVuIG5vZGUgaXMgZWl0aGVyIGEgc3RyaW5nIGxpdGVyYWwgb3IgYSBuby1zdWJzdGl0dXRpb24gdGVtcGxhdGVcbiAqIGxpdGVyYWwuIE5vdGUgdGhhdCB3ZSBjYW5ub3QgdXNlIGB0cy5pc1N0cmluZ0xpdGVyYWxMaWtlKClgIGJlY2F1c2UgaWYgZGV2ZWxvcGVycyB1cGRhdGVcbiAqIGFuIG91dGRhdGVkIHByb2plY3QsIHRoZWlyIFR5cGVTY3JpcHQgdmVyc2lvbiBpcyBub3QgYXV0b21hdGljYWxseSBiZWluZyB1cGRhdGVkXG4gKiBhbmQgdGhlcmVmb3JlIGNvdWxkIHRocm93IGJlY2F1c2UgdGhlIGZ1bmN0aW9uIGlzIG5vdCBhdmFpbGFibGUgeWV0LlxuICogaHR0cHM6Ly9naXRodWIuY29tL01pY3Jvc29mdC9UeXBlU2NyaXB0L2NvbW1pdC84NTE4MzQzZGM4NzYyNDc1YTVlOTJjOWY4MGI1YzU3MjViZDgxNzk2XG4gKi9cbmV4cG9ydCBmdW5jdGlvbiBpc1N0cmluZ0xpdGVyYWxMaWtlKFxuICBub2RlOiB0cy5Ob2RlLFxuKTogbm9kZSBpcyB0cy5TdHJpbmdMaXRlcmFsIHwgdHMuTm9TdWJzdGl0dXRpb25UZW1wbGF0ZUxpdGVyYWwge1xuICByZXR1cm4gdHMuaXNTdHJpbmdMaXRlcmFsKG5vZGUpIHx8IHRzLmlzTm9TdWJzdGl0dXRpb25UZW1wbGF0ZUxpdGVyYWwobm9kZSk7XG59XG4iXX0=
+//# sourceMappingURL=literal.js.map

@@ -1,6 +1,6 @@
 {
   "name": "@angular/cdk",
-  "version": "18.2.14",
+  "version": "22.0.4+sha-7bfed8f",
   "description": "Angular Material Component Development Kit",
   "repository": {
     "type": "git",
@@ -21,9 +21,7 @@
   "exports": {
     ".": {
       "sass": "./_index.scss",
-      "types": "./index.d.ts",
-      "esm2022": "./esm2022/index.mjs",
-      "esm": "./esm2022/index.mjs",
+      "types": "./types/cdk.d.ts",
       "default": "./fesm2022/cdk.mjs"
     },
     "./a11y-prebuilt.css": {
@@ -51,179 +49,140 @@
       "default": "./package.json"
     },
     "./a11y": {
-      "types": "./a11y/index.d.ts",
-      "esm2022": "./esm2022/a11y/a11y_public_index.mjs",
-      "esm": "./esm2022/a11y/a11y_public_index.mjs",
+      "types": "./types/a11y.d.ts",
       "default": "./fesm2022/a11y.mjs"
     },
     "./accordion": {
-      "types": "./accordion/index.d.ts",
-      "esm2022": "./esm2022/accordion/accordion_public_index.mjs",
-      "esm": "./esm2022/accordion/accordion_public_index.mjs",
+      "types": "./types/accordion.d.ts",
       "default": "./fesm2022/accordion.mjs"
     },
     "./bidi": {
-      "types": "./bidi/index.d.ts",
-      "esm2022": "./esm2022/bidi/bidi_public_index.mjs",
-      "esm": "./esm2022/bidi/bidi_public_index.mjs",
+      "types": "./types/bidi.d.ts",
       "default": "./fesm2022/bidi.mjs"
     },
     "./clipboard": {
-      "types": "./clipboard/index.d.ts",
-      "esm2022": "./esm2022/clipboard/clipboard_public_index.mjs",
-      "esm": "./esm2022/clipboard/clipboard_public_index.mjs",
+      "types": "./types/clipboard.d.ts",
       "default": "./fesm2022/clipboard.mjs"
     },
     "./coercion": {
-      "types": "./coercion/index.d.ts",
-      "esm2022": "./esm2022/coercion/index.mjs",
-      "esm": "./esm2022/coercion/index.mjs",
+      "types": "./types/coercion.d.ts",
       "default": "./fesm2022/coercion.mjs"
     },
     "./coercion/private": {
-      "types": "./coercion/private/index.d.ts",
-      "esm2022": "./esm2022/coercion/private/private_public_index.mjs",
-      "esm": "./esm2022/coercion/private/private_public_index.mjs",
-      "default": "./fesm2022/coercion/private.mjs"
+      "types": "./types/coercion-private.d.ts",
+      "default": "./fesm2022/coercion-private.mjs"
     },
     "./collections": {
-      "types": "./collections/index.d.ts",
-      "esm2022": "./esm2022/collections/collections_public_index.mjs",
-      "esm": "./esm2022/collections/collections_public_index.mjs",
+      "types": "./types/collections.d.ts",
       "default": "./fesm2022/collections.mjs"
     },
     "./dialog": {
-      "types": "./dialog/index.d.ts",
-      "esm2022": "./esm2022/dialog/dialog_public_index.mjs",
-      "esm": "./esm2022/dialog/dialog_public_index.mjs",
+      "types": "./types/dialog.d.ts",
       "default": "./fesm2022/dialog.mjs"
     },
     "./drag-drop": {
-      "types": "./drag-drop/index.d.ts",
-      "esm2022": "./esm2022/drag-drop/drag-drop_public_index.mjs",
-      "esm": "./esm2022/drag-drop/drag-drop_public_index.mjs",
+      "types": "./types/drag-drop.d.ts",
       "default": "./fesm2022/drag-drop.mjs"
     },
     "./keycodes": {
-      "types": "./keycodes/index.d.ts",
-      "esm2022": "./esm2022/keycodes/keycodes_public_index.mjs",
-      "esm": "./esm2022/keycodes/keycodes_public_index.mjs",
+      "types": "./types/keycodes.d.ts",
       "default": "./fesm2022/keycodes.mjs"
     },
     "./layout": {
-      "types": "./layout/index.d.ts",
-      "esm2022": "./esm2022/layout/layout_public_index.mjs",
-      "esm": "./esm2022/layout/layout_public_index.mjs",
+      "types": "./types/layout.d.ts",
       "default": "./fesm2022/layout.mjs"
     },
     "./listbox": {
-      "types": "./listbox/index.d.ts",
-      "esm2022": "./esm2022/listbox/listbox_public_index.mjs",
-      "esm": "./esm2022/listbox/listbox_public_index.mjs",
+      "types": "./types/listbox.d.ts",
       "default": "./fesm2022/listbox.mjs"
     },
     "./menu": {
-      "types": "./menu/index.d.ts",
-      "esm2022": "./esm2022/menu/menu_public_index.mjs",
-      "esm": "./esm2022/menu/menu_public_index.mjs",
+      "types": "./types/menu.d.ts",
       "default": "./fesm2022/menu.mjs"
     },
     "./observers": {
-      "types": "./observers/index.d.ts",
-      "esm2022": "./esm2022/observers/observers_public_index.mjs",
-      "esm": "./esm2022/observers/observers_public_index.mjs",
+      "types": "./types/observers.d.ts",
       "default": "./fesm2022/observers.mjs"
     },
     "./observers/private": {
-      "types": "./observers/private/index.d.ts",
-      "esm2022": "./esm2022/observers/private/private_public_index.mjs",
-      "esm": "./esm2022/observers/private/private_public_index.mjs",
-      "default": "./fesm2022/observers/private.mjs"
+      "types": "./types/observers-private.d.ts",
+      "default": "./fesm2022/observers-private.mjs"
     },
     "./overlay": {
-      "types": "./overlay/index.d.ts",
-      "esm2022": "./esm2022/overlay/overlay_public_index.mjs",
-      "esm": "./esm2022/overlay/overlay_public_index.mjs",
+      "types": "./types/overlay.d.ts",
       "default": "./fesm2022/overlay.mjs"
     },
     "./platform": {
-      "types": "./platform/index.d.ts",
-      "esm2022": "./esm2022/platform/platform_public_index.mjs",
-      "esm": "./esm2022/platform/platform_public_index.mjs",
+      "types": "./types/platform.d.ts",
       "default": "./fesm2022/platform.mjs"
     },
     "./portal": {
-      "types": "./portal/index.d.ts",
-      "esm2022": "./esm2022/portal/portal_public_index.mjs",
-      "esm": "./esm2022/portal/portal_public_index.mjs",
+      "types": "./types/portal.d.ts",
       "default": "./fesm2022/portal.mjs"
     },
+    "./private": {
+      "types": "./types/private.d.ts",
+      "default": "./fesm2022/private.mjs"
+    },
     "./scrolling": {
-      "types": "./scrolling/index.d.ts",
-      "esm2022": "./esm2022/scrolling/scrolling_public_index.mjs",
-      "esm": "./esm2022/scrolling/scrolling_public_index.mjs",
+      "types": "./types/scrolling.d.ts",
       "default": "./fesm2022/scrolling.mjs"
     },
     "./stepper": {
-      "types": "./stepper/index.d.ts",
-      "esm2022": "./esm2022/stepper/stepper_public_index.mjs",
-      "esm": "./esm2022/stepper/stepper_public_index.mjs",
+      "types": "./types/stepper.d.ts",
       "default": "./fesm2022/stepper.mjs"
     },
     "./table": {
-      "types": "./table/index.d.ts",
-      "esm2022": "./esm2022/table/table_public_index.mjs",
-      "esm": "./esm2022/table/table_public_index.mjs",
+      "types": "./types/table.d.ts",
       "default": "./fesm2022/table.mjs"
     },
     "./testing": {
-      "types": "./testing/index.d.ts",
-      "esm2022": "./esm2022/testing/index.mjs",
-      "esm": "./esm2022/testing/index.mjs",
+      "types": "./types/testing.d.ts",
       "default": "./fesm2022/testing.mjs"
     },
     "./testing/selenium-webdriver": {
-      "types": "./testing/selenium-webdriver/index.d.ts",
-      "esm2022": "./esm2022/testing/selenium-webdriver/index.mjs",
-      "esm": "./esm2022/testing/selenium-webdriver/index.mjs",
-      "default": "./fesm2022/testing/selenium-webdriver.mjs"
+      "types": "./types/testing-selenium-webdriver.d.ts",
+      "default": "./fesm2022/testing-selenium-webdriver.mjs"
     },
     "./testing/testbed": {
-      "types": "./testing/testbed/index.d.ts",
-      "esm2022": "./esm2022/testing/testbed/index.mjs",
-      "esm": "./esm2022/testing/testbed/index.mjs",
-      "default": "./fesm2022/testing/testbed.mjs"
+      "types": "./types/testing-testbed.d.ts",
+      "default": "./fesm2022/testing-testbed.mjs"
     },
     "./text-field": {
-      "types": "./text-field/index.d.ts",
-      "esm2022": "./esm2022/text-field/text-field_public_index.mjs",
-      "esm": "./esm2022/text-field/text-field_public_index.mjs",
+      "types": "./types/text-field.d.ts",
       "default": "./fesm2022/text-field.mjs"
     },
     "./tree": {
-      "types": "./tree/index.d.ts",
-      "esm2022": "./esm2022/tree/tree_public_index.mjs",
-      "esm": "./esm2022/tree/tree_public_index.mjs",
+      "types": "./types/tree.d.ts",
       "default": "./fesm2022/tree.mjs"
     }
   },
   "peerDependencies": {
-    "@angular/core": "^18.0.0 || ^19.0.0",
-    "@angular/common": "^18.0.0 || ^19.0.0",
+    "@angular/core": "^22.0.0 || ^23.0.0",
+    "@angular/common": "^22.0.0 || ^23.0.0",
+    "@angular/platform-browser": "^22.0.0 || ^23.0.0",
     "rxjs": "^6.5.3 || ^7.4.0"
   },
   "dependencies": {
+    "parse5": "^8.0.0",
     "tslib": "^2.3.0"
-  },
-  "optionalDependencies": {
-    "parse5": "^7.1.2"
   },
   "schematics": "./schematics/collection.json",
   "ng-update": {
-    "migrations": "./schematics/migration.json"
+    "migrations": "./schematics/migration.json",
+    "packageGroup": [
+      "@angular/material",
+      "@angular/aria",
+      "@angular/cdk",
+      "@angular/cdk-experimental",
+      "@angular/material-experimental",
+      "@angular/material-luxon-adapter",
+      "@angular/material-moment-adapter",
+      "@angular/material-date-fns-adapter"
+    ]
   },
   "sideEffects": false,
   "module": "./fesm2022/cdk.mjs",
-  "typings": "./index.d.ts",
+  "typings": "./types/cdk.d.ts",
   "type": "module"
 }

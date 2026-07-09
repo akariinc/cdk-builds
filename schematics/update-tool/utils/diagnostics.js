@@ -4,15 +4,48 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.formatDiagnostics = formatDiagnostics;
-const ts = require("typescript");
+const ts = __importStar(require("typescript"));
 const virtual_host_1 = require("./virtual-host");
 /** Formats the specified diagnostics with respect to the given file system. */
 function formatDiagnostics(diagnostics, fileSystem) {
     const formatHost = (0, virtual_host_1.createFormatDiagnosticHost)(fileSystem);
     return ts.formatDiagnosticsWithColorAndContext(diagnostics, formatHost);
 }
-//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiZGlhZ25vc3RpY3MuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi8uLi8uLi8uLi8uLi8uLi8uLi8uLi9zcmMvY2RrL3NjaGVtYXRpY3MvdXBkYXRlLXRvb2wvdXRpbHMvZGlhZ25vc3RpY3MudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IjtBQUFBOzs7Ozs7R0FNRzs7QUFPSCw4Q0FHQztBQVJELGlDQUFpQztBQUVqQyxpREFBMEQ7QUFFMUQsK0VBQStFO0FBQy9FLFNBQWdCLGlCQUFpQixDQUFDLFdBQTRCLEVBQUUsVUFBc0I7SUFDcEYsTUFBTSxVQUFVLEdBQUcsSUFBQSx5Q0FBMEIsRUFBQyxVQUFVLENBQUMsQ0FBQztJQUMxRCxPQUFPLEVBQUUsQ0FBQyxvQ0FBb0MsQ0FBQyxXQUFXLEVBQUUsVUFBVSxDQUFDLENBQUM7QUFDMUUsQ0FBQyIsInNvdXJjZXNDb250ZW50IjpbIi8qKlxuICogQGxpY2Vuc2VcbiAqIENvcHlyaWdodCBHb29nbGUgTExDIEFsbCBSaWdodHMgUmVzZXJ2ZWQuXG4gKlxuICogVXNlIG9mIHRoaXMgc291cmNlIGNvZGUgaXMgZ292ZXJuZWQgYnkgYW4gTUlULXN0eWxlIGxpY2Vuc2UgdGhhdCBjYW4gYmVcbiAqIGZvdW5kIGluIHRoZSBMSUNFTlNFIGZpbGUgYXQgaHR0cHM6Ly9hbmd1bGFyLmlvL2xpY2Vuc2VcbiAqL1xuXG5pbXBvcnQgKiBhcyB0cyBmcm9tICd0eXBlc2NyaXB0JztcbmltcG9ydCB7RmlsZVN5c3RlbX0gZnJvbSAnLi4vZmlsZS1zeXN0ZW0nO1xuaW1wb3J0IHtjcmVhdGVGb3JtYXREaWFnbm9zdGljSG9zdH0gZnJvbSAnLi92aXJ0dWFsLWhvc3QnO1xuXG4vKiogRm9ybWF0cyB0aGUgc3BlY2lmaWVkIGRpYWdub3N0aWNzIHdpdGggcmVzcGVjdCB0byB0aGUgZ2l2ZW4gZmlsZSBzeXN0ZW0uICovXG5leHBvcnQgZnVuY3Rpb24gZm9ybWF0RGlhZ25vc3RpY3MoZGlhZ25vc3RpY3M6IHRzLkRpYWdub3N0aWNbXSwgZmlsZVN5c3RlbTogRmlsZVN5c3RlbSk6IHN0cmluZyB7XG4gIGNvbnN0IGZvcm1hdEhvc3QgPSBjcmVhdGVGb3JtYXREaWFnbm9zdGljSG9zdChmaWxlU3lzdGVtKTtcbiAgcmV0dXJuIHRzLmZvcm1hdERpYWdub3N0aWNzV2l0aENvbG9yQW5kQ29udGV4dChkaWFnbm9zdGljcywgZm9ybWF0SG9zdCk7XG59XG4iXX0=
+//# sourceMappingURL=diagnostics.js.map
