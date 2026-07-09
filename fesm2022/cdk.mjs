@@ -1,7 +1,6 @@
 import { Version } from '@angular/core';
 
-/** Current version of the Angular Component Development Kit. */
-const VERSION = new Version('18.2.14');
+const VERSION = new Version('21.2.14+sha-91dcfaf');
 
 export { VERSION };
 //# sourceMappingURL=cdk.mjs.map

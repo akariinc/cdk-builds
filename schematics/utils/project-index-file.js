@@ -4,17 +4,40 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getProjectIndexFiles = getProjectIndexFiles;
+const posix_1 = require("node:path/posix");
 const project_targets_1 = require("./project-targets");
-/** Gets the path of the index file in the given project. */
+/**
+ * Gets the path of the index file in the given project.
+ * This only searches the base options for each target and not any defined target configurations.
+ */
 function getProjectIndexFiles(project) {
-    const paths = (0, project_targets_1.getProjectBuildTargets)(project)
-        .filter(t => t.options?.['index'])
-        .map(t => t.options['index']);
-    // Use a set to remove duplicate index files referenced in multiple build targets of a project.
-    return Array.from(new Set(paths));
+    var _a, _b;
+    // Use a Set to remove duplicate index files referenced in multiple build targets of a project.
+    const paths = new Set();
+    for (const target of (0, project_targets_1.getProjectBuildTargets)(project)) {
+        const indexValue = (_a = target.options) === null || _a === void 0 ? void 0 : _a['index'];
+        switch (typeof indexValue) {
+            case 'string':
+                // "index": "src/index.html"
+                paths.add(indexValue);
+                break;
+            case 'object':
+                // "index": { "input": "src/index.html", ... }
+                if (indexValue && 'input' in indexValue) {
+                    paths.add(indexValue['input']);
+                }
+                break;
+            case 'undefined':
+                // v20+ supports an optional index field; default of `<project_source_root>/index.html`
+                // `project_source_root` is the project level `sourceRoot`; default of `<project_root>/src`
+                paths.add((0, posix_1.join)((_b = project.sourceRoot) !== null && _b !== void 0 ? _b : (0, posix_1.join)(project.root, 'src'), 'index.html'));
+                break;
+        }
+    }
+    return Array.from(paths);
 }
-//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoicHJvamVjdC1pbmRleC1maWxlLmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXMiOlsiLi4vLi4vLi4vLi4vLi4vLi4vLi4vc3JjL2Nkay9zY2hlbWF0aWNzL3V0aWxzL3Byb2plY3QtaW5kZXgtZmlsZS50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiO0FBQUE7Ozs7OztHQU1HOztBQU1ILG9EQU9DO0FBVkQsdURBQXlEO0FBRXpELDREQUE0RDtBQUM1RCxTQUFnQixvQkFBb0IsQ0FBQyxPQUFxQztJQUN4RSxNQUFNLEtBQUssR0FBRyxJQUFBLHdDQUFzQixFQUFDLE9BQU8sQ0FBQztTQUMxQyxNQUFNLENBQUMsQ0FBQyxDQUFDLEVBQUUsQ0FBQyxDQUFDLENBQUMsT0FBTyxFQUFFLENBQUMsT0FBTyxDQUFDLENBQUM7U0FDakMsR0FBRyxDQUFDLENBQUMsQ0FBQyxFQUFFLENBQUMsQ0FBQyxDQUFDLE9BQVEsQ0FBQyxPQUFPLENBQVMsQ0FBQyxDQUFDO0lBRXpDLCtGQUErRjtJQUMvRixPQUFPLEtBQUssQ0FBQyxJQUFJLENBQUMsSUFBSSxHQUFHLENBQUMsS0FBSyxDQUFDLENBQUMsQ0FBQztBQUNwQyxDQUFDIiwic291cmNlc0NvbnRlbnQiOlsiLyoqXG4gKiBAbGljZW5zZVxuICogQ29weXJpZ2h0IEdvb2dsZSBMTEMgQWxsIFJpZ2h0cyBSZXNlcnZlZC5cbiAqXG4gKiBVc2Ugb2YgdGhpcyBzb3VyY2UgY29kZSBpcyBnb3Zlcm5lZCBieSBhbiBNSVQtc3R5bGUgbGljZW5zZSB0aGF0IGNhbiBiZVxuICogZm91bmQgaW4gdGhlIExJQ0VOU0UgZmlsZSBhdCBodHRwczovL2FuZ3VsYXIuaW8vbGljZW5zZVxuICovXG5cbmltcG9ydCB7UGF0aCwgd29ya3NwYWNlc30gZnJvbSAnQGFuZ3VsYXItZGV2a2l0L2NvcmUnO1xuaW1wb3J0IHtnZXRQcm9qZWN0QnVpbGRUYXJnZXRzfSBmcm9tICcuL3Byb2plY3QtdGFyZ2V0cyc7XG5cbi8qKiBHZXRzIHRoZSBwYXRoIG9mIHRoZSBpbmRleCBmaWxlIGluIHRoZSBnaXZlbiBwcm9qZWN0LiAqL1xuZXhwb3J0IGZ1bmN0aW9uIGdldFByb2plY3RJbmRleEZpbGVzKHByb2plY3Q6IHdvcmtzcGFjZXMuUHJvamVjdERlZmluaXRpb24pOiBQYXRoW10ge1xuICBjb25zdCBwYXRocyA9IGdldFByb2plY3RCdWlsZFRhcmdldHMocHJvamVjdClcbiAgICAuZmlsdGVyKHQgPT4gdC5vcHRpb25zPy5bJ2luZGV4J10pXG4gICAgLm1hcCh0ID0+IHQub3B0aW9ucyFbJ2luZGV4J10gYXMgUGF0aCk7XG5cbiAgLy8gVXNlIGEgc2V0IHRvIHJlbW92ZSBkdXBsaWNhdGUgaW5kZXggZmlsZXMgcmVmZXJlbmNlZCBpbiBtdWx0aXBsZSBidWlsZCB0YXJnZXRzIG9mIGEgcHJvamVjdC5cbiAgcmV0dXJuIEFycmF5LmZyb20obmV3IFNldChwYXRocykpO1xufVxuIl19
+//# sourceMappingURL=project-index-file.js.map
